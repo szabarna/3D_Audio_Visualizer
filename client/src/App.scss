@@ -1,0 +1,313 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap');
+
+$colorMain: rgb(0, 255, 155);
+$colorMainRGBA: rgba(0, 255, 155, 0.25);
+
+.MuiInputBase-root, .MuiSvgIcon-root, .MuiOutlinedInput-notchedOutline, .MuiFormLabel-root {
+  color: white !important;
+  border-color: white !important;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 400;
+}
+
+html, body {
+  width:  100%;
+  height: 100%;
+  margin: 0;
+}
+
+.App {
+  display: grid;
+  width: 100vw;
+  height: 100vh;
+  justify-items: center;
+  overflow: hidden;
+}
+
+.navBar {
+    position: absolute;
+    width: 100vw;
+    height: 6vh;
+    background-color: #151515;
+    z-index: 2;
+}
+
+.mainSection {
+    display: grid;
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background-color: #111;
+    justify-content: center;
+    align-content: center;
+}
+
+.visualizerContainer {
+    display: grid;
+    position: relative;
+    width: 70vw;
+    height: 75vh;
+    background-color: transparent;
+    align-self: center;
+    justify-self: center;
+    grid-template-columns: repeat(7, auto);
+    align-items: center;
+    gap: 5rem;
+    justify-content: start;
+    z-index: 3;
+    overflow-x: scroll;
+
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    .visualizerElement {
+      position: relative;
+      width: 70vw;
+      height: 100%;
+      background-color: #151515;
+      border-radius: 0.25rem;
+      text-transform: capitalize;
+      text-align: center;
+      font-size: 1.15rem;
+      justify-items: center;
+      align-items: center;
+      display: grid;
+      transition: all 0.15s ease-in-out;
+
+      h2 {
+        position: relative;
+        width: fit-content;
+        height: fit-content;
+        color: white;
+      }
+
+    }
+
+}
+
+.wrapper {
+  display: grid;
+  position: relative;
+  align-items: center;
+}
+
+.rightIcon {
+  z-index: 5;
+  position: absolute;
+  right: 1rem;
+  cursor: pointer;
+  padding: 0.35rem;
+  background-color: rgba(30, 30, 30, 0.0);
+  text-align: center;
+  border-radius: 100%;
+  transition: all 0.15s ease-in-out !important;
+  font-size: 2.75rem !important;
+
+  &:hover {
+    background-color: rgba(30, 30, 30, 1.0);
+  }
+}
+
+.leftIcon {
+  z-index: 5;
+  position: absolute;
+  left: 1rem;
+  cursor: pointer;
+  padding: 0.35rem;
+  background-color: rgba(30, 30, 30, 0.0);
+  text-align: center;
+  border-radius: 100%;
+  transition: all 0.15s ease-in-out !important;
+  font-size: 2.75rem !important;
+
+  &:hover {
+    background-color: rgba(30, 30, 30, 1.0);
+  }
+}
+
+.canvasHolder {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    align-self: center;
+    justify-self: center;
+    border-radius: 0.5rem;
+    background: transparent;
+    height: 100vh;
+    width: 100vw;
+    z-index: 2;
+}
+
+.hidden {
+  opacity: 0;
+}
+
+.webgl {
+  position: relative;
+  background-color: #000;
+  border-radius: 0.5rem;
+}
+
+.audioCanvas {
+  position: absolute;
+  z-index: 5;
+  bottom: 6rem;
+  left: 12.25%;
+
+  canvas {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+  }
+}
+
+
+.audioAndInputsContainer {
+  position: absolute;
+  display: grid;
+  width: 100vw;
+  height: 100vh;
+  justify-items: center;
+
+  .audioContainer {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 2px solid #121212;
+    background-color: #111111;
+    border-radius: 50rem;
+    width: 80%;
+    height: 8.5%;
+    bottom: 1.5rem;
+    align-self: flex-end;
+    justify-self: center;
+    z-index: 5;
+    overflow: hidden;
+    color: white;
+    align-content: center;
+    justify-content: center;
+
+
+    .audioControlsDiv, .audioInfoDiv, .audioVolumeDiv {
+      display: grid;
+      height: 100%;
+      justify-items: center;
+      align-items: center;
+    }
+
+    .audioInfoDiv {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(2, auto);
+      left: 1rem;
+    }
+
+    .audioControlsDiv {
+      display: grid;
+      align-content: center;
+
+      .audioSliderDiv {
+        height: 2rem;
+      }
+
+      .audioIcon {
+        font-size: 2rem;
+        cursor: pointer;
+      }
+  
+      .audioTimeDiv {
+        display: grid;
+        height: 100%;
+        width: 100%;
+        grid-template-columns: repeat(3, auto);
+        justify-content: space-evenly;
+        align-items: center;
+        font-size: 0.9rem;
+
+        .MuiSlider-root {
+          width: 15rem;
+          color: $colorMain;
+        }
+      }
+    }
+
+    .audioVolumeDiv {
+      display: grid;
+      grid-template-columns: repeat(2, auto);
+      height: 100%;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.5rem;
+
+
+      .MuiSlider-root {
+        width: 10rem;
+        color: $colorMain;
+      }
+
+      .volumeIconDiv {
+        height: 1.75rem;
+        width: 1.75rem;
+        align-content: center;
+        display: grid;
+      }
+
+      .volumeIcon {
+        font-size: 1.75rem;
+        position: absolute;
+        cursor: pointer;
+      }
+
+    }
+
+    .actionDiv {
+      position: absolute;
+      align-self: center;
+      justify-content: center;
+      right: 2rem;
+   
+      
+      div {
+        height: 2.5rem;
+        width: 2.5rem;
+        cursor: pointer;
+        border: 0 solid $colorMain;
+        border-radius: 100%;
+        align-items: center;
+        justify-content: center;
+        display: grid;
+        transform: scale(1.5);
+
+        &:hover {
+          border: 1px solid $colorMain;
+        }
+      }
+    }
+  
+  }
+
+  .audioActionsDiv {
+    position: absolute;
+    width: 20%;
+    height: 70vh;
+    background-color: red;
+    top: 2.5rem;
+    left: 1.25rem;
+    z-index: 4;
+    border-radius: 0.25rem;
+    background-color: #151515;
+  }
+}
+
+

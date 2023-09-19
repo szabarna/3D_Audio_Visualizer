@@ -1,0 +1,77 @@
+{
+  "name": "my-app",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@babel/plugin-transform-private-property-in-object": "^7.22.11",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.14.9",
+    "@mui/material": "^5.14.9",
+    "@react-three/drei": "^9.34.3",
+    "@react-three/fiber": "^8.8.9",
+    "@react-three/postprocessing": "^2.6.2",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/dat.gui": "^0.7.9",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.11.64",
+    "@types/react": "^18.0.21",
+    "@types/react-dom": "^18.0.6",
+    "dat.gui": "^0.7.9",
+    "glslify-loader": "^2.0.0",
+    "gsap": "^3.11.3",
+    "raw-loader": "^4.0.2",
+    "react": "^17.0.0 || ^18.0.0",
+    "react-dom": "^17.0.0 || ^18.0.0",
+    "react-icons": "^4.9.0",
+    "react-scripts": "5.0.1",
+    "three": "^0.154.0",
+    "three-custom-shader-material": "^5.4.0",
+    "typescript": "^4.8.4",
+    "web-vitals": "^2.1.4"
+  },
+  "peerDependencies": {
+    "react": "^17.0.0 || ^18.0.0",
+    "react-dom": "^17.0.0 || ^18.0.0"
+  },
+  "scripts": {
+    "client": "cd client && npm start",
+    "server": "cd server && node src/index.ts",
+    "dev": "concurrently \"npm run client\" \"npm run server\"",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@types/three": "^0.144.0",
+    "babel-plugin-glsl": "^1.0.0",
+    "concurrently": "^8.2.0",
+    "glslify": "^7.1.1",
+    "sass": "^1.55.0"
+  },
+  "plugins": [
+    "babel-plugin-glsl"
+  ]
+}
