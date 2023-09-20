@@ -1,10 +1,10 @@
 import pool from "../pool";
 
 // Create
-const createPlaylist = async (name: string, userId: string) => {
+const createPlaylist = async (name: string, userId: string, description: string, imageBuffer: Buffer) => {
   const result = await pool.query(
-    "INSERT INTO playlists (name, user_id) VALUES ($1, $2) RETURNING *",
-    [name, userId]
+    "INSERT INTO playlists (name, user_id, description, img) VALUES ($1, $2, $3, $4) RETURNING *",
+    [name, userId, description, imageBuffer]
   );
   return result.rows[0];
 };

@@ -4,11 +4,14 @@
   "private": true,
   "dependencies": {
     "@babel/plugin-transform-private-property-in-object": "^7.22.11",
+    "@babel/regjsgen": "^0.8.0",
+    "@csstools/normalize.css": "^12.0.0",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
+    "@mediapipe/tasks-vision": "^0.10.6",
     "@mui/icons-material": "^5.14.9",
     "@mui/material": "^5.14.9",
-    "@react-three/drei": "^9.34.3",
+    "@react-three/drei": "^9.84.1",
     "@react-three/fiber": "^8.8.9",
     "@react-three/postprocessing": "^2.6.2",
     "@testing-library/jest-dom": "^5.16.5",
@@ -64,7 +67,6 @@
     ]
   },
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@types/three": "^0.144.0",
     "babel-plugin-glsl": "^1.0.0",
     "concurrently": "^8.2.0",

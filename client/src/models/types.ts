@@ -15,4 +15,11 @@ type Scene = {
     cameraPos: Vector3;
 };
 
-export type { Audio, Scene };
+type Playlist = {
+    userId: string;
+    name: string;
+    description: string;
+    img: File | null;
+}
+
+export type { Audio, Scene, Playlist };

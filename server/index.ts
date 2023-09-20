@@ -11,7 +11,7 @@ const app = express();
 app.use( cors() );
 app.use( bodyParser.json() )
 
-app.use("/api/audio", musicRoutes);
+app.use("/api", musicRoutes);
 
 const PORT = process.env.PORT;
 

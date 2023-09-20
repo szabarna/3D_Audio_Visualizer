@@ -3,89 +3,10 @@ import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
 import PauseCircleFilledIcon from '@mui/icons-material/PauseCircleFilled';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import VolumeDownIcon from '@mui/icons-material/VolumeDown';
-import { Box, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, Slider } from "@mui/material";
+import { Slider } from "@mui/material";
 import AudioCanvas from "./AudioCanvas";
 import { Audio } from "../../models/types";
 
-type AudioData = {
-    name: string;
-    audioAsString: string;
-    audio: string | null;
-  };
-  
-  let audioParams: AudioData[] = [
-    {
-      name: "All I Know",
-      audioAsString: "allIKnow.mp3",
-      audio: null,
-    },
-    {
-      name: "Breaking The Habit",
-      audioAsString: "breakingTheHabit.mp3",
-      audio: null,
-    },
-    {
-      name: "Dreams",
-      audioAsString: "dreams.mp3",
-      audio: null,
-    },
-    {
-      name: "Empty Crown",
-      audioAsString: "emptyCrown.mp3",
-      audio: null,
-    },
-    {
-      name: "Hero",
-      audioAsString: "hero.mp3",
-      audio: null,
-    },
-    {
-      name: "Song of Storms",
-      audioAsString: "songOfStorms.mp3",
-      audio: null,
-    },
-    {
-      name: "Tour",
-      audioAsString: "tour.mp3",
-      audio: null,
-    },
-    {
-      name: "We wont be alone",
-      audioAsString: "weWontBeAlone.mp3",
-      audio: null,
-    },
-    {
-      name: "Disclosure",
-      audioAsString: "disclosure.mp3",
-      audio: null,
-    },
-    {
-      name: "EyesOnFire",
-      audioAsString: "eyesOnFire.mp3",
-      audio: null,
-    },
-    {
-      name: "cinema",
-      audioAsString: "cinema.mp3",
-      audio: null,
-    },
-    {
-      name: "habits",
-      audioAsString: "habits.mp3",
-      audio: null,
-    },
-    {
-      name: "sayIt",
-      audioAsString: "sayIt.mp3",
-      audio: null,
-    },
-    {
-      name: "neverBeLikeYou",
-      audioAsString: "neverBeLikeYou.mp3",
-      audio: null,
-    },
-    
-  ];
 
 const AudioContainer = ({ currentAudio, handleSetSceneNull }: { currentAudio: Audio | undefined; handleSetSceneNull: () => void; }) => {
  

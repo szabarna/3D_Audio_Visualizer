@@ -1,6 +1,6 @@
 import { Environment, OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import React, { Suspense, useEffect, useRef, useState } from "react";
+import React, { ChangeEvent, Suspense, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import "./App.scss";
 import SphereVisualizer from "./components/webgl/SphereVisualizer";
@@ -9,9 +9,9 @@ import CylinderVisualizer from "./components/webgl/CylinderVisualizer";
 import FractalVisualizer from "./components/webgl/FractalVisualizer";
 import TorusVisualizer from "./components/webgl/TorusVisualizer";
 import { TornadoVisualizer } from "./components/webgl/TornadoVisualizer";
-import { Audio, Scene } from "./models/types";
+import { Audio, Playlist, Scene } from "./models/types";
 import Sphere from "./components/webgl/Sphere";
-import { Button, InputLabel, MenuItem } from "@mui/material";
+import { Button, Input, InputLabel, MenuItem, Modal, TextField } from "@mui/material";
 import FormControl from "@mui/material/FormControl";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 
@@ -19,6 +19,7 @@ import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrow
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import AudioContainer from "./components/parameters/AudioContainer";
 import AudioActionsContainer from "./components/parameters/AudioActionsContainer";
+import { CreatePlaylistComponent } from "./components/main/CreatePlaylistComponent";
 
 
 let initialScenes: Scene[] = [
@@ -134,7 +135,7 @@ function App() {
   const [isScrolling, setIsScrolling] = useState(false);
 
   const [currentAudio, setCurrentAudio] = useState<Audio | undefined>(undefined);
-  const [isAudioAndInputsContainerVisible, setIsAudioAndInputsContainerVisible] = useState(true);
+  const [mainVisible, setmainVisible] = useState<boolean>(false);
 
   const visualizerContainer = useRef<HTMLDivElement | null>(null);
   const canvasHolderRef = useRef<HTMLDivElement | null>(null);
@@ -219,6 +220,14 @@ function App() {
     }
   };
 
+  const handleClose = () => {
+    setmainVisible(false);
+  };
+
+  const handleOpen = () => {
+    setmainVisible(true);
+  };
+
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => {
@@ -277,7 +286,14 @@ function App() {
         ref={audioAndInputsContainerRef}
         className="audioAndInputsContainer">
           <AudioContainer handleSetSceneNull={handleSetSceneNull} currentAudio={currentAudio} />
-          <AudioActionsContainer handleSelectAudio={handleSelectAudio} />
+          <AudioActionsContainer handleOpenModal={handleOpen} handleSelectAudio={handleSelectAudio} />
+
+          { mainVisible ? 
+            <div className="mainModalDiv">
+              <CreatePlaylistComponent isVisible={mainVisible} />
+            </div> : null
+          }
+          
         </div> : null
        } 
       </main>    
