@@ -17,6 +17,14 @@ const getPlaylistById = async (id: string) => {
   return result.rows[0];
 };
 
+const getAllPlaylistByUserId = async (user_id: string) => {
+  const result = await pool.query("SELECT * FROM playlists WHERE user_id = $1", [user_id]);
+  return {
+    "items": result.rows,
+    "count": result.rowCount
+  };
+};
+
 // Update
 const updatePlaylist = async (id: string, name: string) => {
   const result = await pool.query(
@@ -69,4 +77,4 @@ const getPlaylistsByUserId = async (userId: string) => {
   return Object.values(playlists);
 };
 
-export {getPlaylistById, getPlaylistsByUserId, createPlaylist, updatePlaylist, deletePlaylist }
+export {getPlaylistById, getPlaylistsByUserId, createPlaylist, updatePlaylist, deletePlaylist, getAllPlaylistByUserId }

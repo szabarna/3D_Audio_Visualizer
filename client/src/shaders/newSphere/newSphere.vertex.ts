@@ -166,9 +166,9 @@ float cnoise(vec4 P){
       float displaceStrength = 1.0 + (uVolume * 3.25) + (uFrequency * 3.25);
       
        float distortion = cnoise(vec4(
-         normal * 3.25 * (uFrequency),
+         normal * 2.5 * (uFrequency),
          uFrequency 
-       ))  * 1.0 * uFrequency; 
+       ))  * 2.25; 
 
        //  normal  * 4.75 * (uFrequency),
 

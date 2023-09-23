@@ -167,23 +167,24 @@ export default function Sphere(props: any) {
   const details = props.detailLevel;
 
   const geometry = new THREE.IcosahedronGeometry(12.5, details);
-  const geometryBig = new THREE.IcosahedronGeometry(100, details);
+  const geometryBig = new THREE.IcosahedronGeometry(150, details);
 
   const sphereMaterial = new THREE.MeshStandardMaterial({
     roughness: 0.0,
     metalness: 1.0,
-    color: 'white',
+   // color: 'white',
     side: THREE.DoubleSide,
-    wireframe: false,
+    wireframe: true,
    // normalMap: new THREE.TextureLoader().load('./img/img3.jpg')
   });
 
   const sphereOuterMaterial = new THREE.MeshStandardMaterial({
-    roughness: 1.0,
+    roughness: 0.0,
     metalness: 1.0,
     //color: 'blue',
-    map: new THREE.TextureLoader().load('./img/img1.jpg'),
-    side: THREE.DoubleSide
+   // map: new THREE.TextureLoader().load('./img/img1.jpg'),
+    side: THREE.DoubleSide,
+    wireframe: false
   });
 
   return (

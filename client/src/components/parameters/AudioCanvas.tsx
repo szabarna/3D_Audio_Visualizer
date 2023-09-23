@@ -1,26 +1,24 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
-interface AudioCanvasProps {
-  analyser: AnalyserNode | null;
-}
+const AudioCanvas = ({ analyser }: { analyser: AnalyserNode | null}) => {
 
-const AudioCanvas: React.FC<AudioCanvasProps> = ({ analyser }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationRef = useRef<number | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
-    if (ctx && analyser) {
-      const bufferLength = analyser.frequencyBinCount;
-      const dataArray = new Uint8Array(bufferLength);
 
       const draw = () => {
         animationRef.current = requestAnimationFrame(draw);
+        
+        if (!analyser || !ctx || !canvas) return;
+
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
 
         analyser.getByteFrequencyData(dataArray);
 
-        if (ctx && canvas) {
           ctx.fillStyle = "rgba(0, 0, 0, 0.0)";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -35,11 +33,9 @@ const AudioCanvas: React.FC<AudioCanvasProps> = ({ analyser }) => {
             ctx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
             x += barWidth;
           }
-        }
-      };
-
-      draw();
     }
+
+    draw();
 
     return () => {
       if (animationRef.current) {

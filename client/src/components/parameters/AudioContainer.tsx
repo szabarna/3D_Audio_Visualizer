@@ -5,38 +5,44 @@ import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import VolumeDownIcon from '@mui/icons-material/VolumeDown';
 import { Slider } from "@mui/material";
 import AudioCanvas from "./AudioCanvas";
-import { Audio } from "../../models/types";
+import { TrackWithBuffer } from "../../models/types";
+import { toBase64 } from "../../utils/conversion";
+import { formatTime } from "../../utils/format";
 
 
-const AudioContainer = ({ currentAudio, handleSetSceneNull }: { currentAudio: Audio | undefined; handleSetSceneNull: () => void; }) => {
+const AudioContainer = ({ currentTrack, handleSetSceneNull }: { currentTrack: TrackWithBuffer | null; handleSetSceneNull: () => void; }) => {
  
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.1);
   const [currentTime, setCurrentTime] = useState(0);
-  const [currentLength, setCurrentLength] = useState(0);
+  const [duration, setDuration] = useState<number>(0);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
 
   useEffect(() => {
-    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-    analyserRef.current = audioContextRef.current.createAnalyser();
-    const source = audioContextRef.current.createMediaElementSource(audioRef.current as HTMLMediaElement);
-    source.connect(analyserRef.current);
-    analyserRef.current.connect(audioContextRef.current.destination);
+    if(currentTrack) {
+      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      analyserRef.current = audioContextRef.current.createAnalyser();
+      const source = audioContextRef.current.createMediaElementSource(audioRef.current as HTMLMediaElement);
+      source.connect(analyserRef.current);
+      analyserRef.current.connect(audioContextRef.current.destination);
 
-  }, []);
+      console.log("Analyser connected")
+    }
+  }, [currentTrack]);
+
 
   useEffect(() => {
-    if (audioRef.current) {
+    if (audioRef.current && currentTrack) {
       audioRef.current.volume = volume;
     }
   }, [volume]);
 
 
   const togglePlay = () => {
-    if (audioRef.current) {
+    if (audioRef.current && currentTrack) {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
@@ -47,23 +53,17 @@ const AudioContainer = ({ currentAudio, handleSetSceneNull }: { currentAudio: Au
   };
 
   const handleTimeUpdate = () => {
-    if (audioRef.current) {
+    if (audioRef.current && currentTrack) {
       setCurrentTime(audioRef.current.currentTime);
     }
   };
 
   const handleAudioProgress = (event: Event, value: number | number[], activeThumb: number) => {
-    if (audioRef.current) {
+    if (audioRef.current && currentTrack) {
       audioRef.current.currentTime = value as number;
       setCurrentTime(value as number);
     }
   }
-
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${String(seconds).padStart(2, '0')}`;
-  };
 
   const handleSceneExit = () => {
     analyserRef.current?.disconnect();
@@ -72,21 +72,32 @@ const AudioContainer = ({ currentAudio, handleSetSceneNull }: { currentAudio: Au
   }
 
   useEffect(() => {
+    const audioElem = audioRef.current;
     
-    if (audioRef.current) {
-      // When metadata is loaded, set currentLength
-      audioRef.current.addEventListener('loadedmetadata', () => {
-        if(!audioRef.current) return;
-        setCurrentLength(audioRef.current.duration);
-      });
-      // Update currentTime on timeupdate event
-      audioRef.current.addEventListener('timeupdate', () => {
-        if(!audioRef.current) return;
-        setCurrentTime(audioRef.current.currentTime);
-      });
+    const handleLoadedMetadata = () => {
+      if (audioElem) {
+        setDuration(audioElem.duration);
+      }
+    };
+
+    const handleTimeUpdateEvent = () => {
+      if (audioElem) {
+        setCurrentTime(audioElem.currentTime);
+      }
+    };
+    
+    if (audioElem && currentTrack) {
+
+      audioElem.addEventListener('loadedmetadata', handleLoadedMetadata);
+      audioElem.addEventListener('timeupdate', handleTimeUpdateEvent);
+
+      return () => {
+        audioElem.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        audioElem.removeEventListener('timeupdate', handleTimeUpdateEvent);
+      };
     }
 
-  }, []);
+  }, [currentTrack]);
 
   return (
     <>
@@ -96,9 +107,10 @@ const AudioContainer = ({ currentAudio, handleSetSceneNull }: { currentAudio: Au
     <div className="audioContainer">
       
       <div className="audioInfoDiv">
+      <img width={64} height={64} src={ currentTrack && currentTrack.img ? `data:image/png/jpeg;base64,${toBase64(currentTrack?.img.data)}` : ''} alt={ currentTrack ? `${currentTrack.title}'s bg` : 'img'} />
         <div className="audioInfoInnerDiv">
-          <h3>{currentAudio?.name}</h3>
-          <h4>{currentAudio?.artist}</h4>
+          <h3>{currentTrack?.title}</h3>
+          <h4>{currentTrack?.artist}</h4>
         </div>
       </div> 
 
@@ -115,15 +127,14 @@ const AudioContainer = ({ currentAudio, handleSetSceneNull }: { currentAudio: Au
               <Slider 
                 aria-label="Small"
                 min={0} 
-                max={Math.floor(currentLength)} 
-                defaultValue={0.1} 
+                max={Math.floor(duration)} 
                 value={typeof Math.floor(currentTime) === 'number' ? Math.floor(currentTime) : 0} 
                 onChange={handleAudioProgress}
                 size="small" 
                 aria-labelledby="input-slider"
               />
       
-            <span>{formatTime(currentLength)}</span>
+            <span>{formatTime(duration)}</span>
         </div>
       </div>
 
@@ -150,11 +161,11 @@ const AudioContainer = ({ currentAudio, handleSetSceneNull }: { currentAudio: Au
 
       <audio 
         ref={audioRef}
-        src={`./audio/${currentAudio?.audio}`} 
-        id="audio" 
-        controls 
+        src={currentTrack && currentTrack.audio ? `${currentTrack.audio}` : ''} 
+        id="audio"  
         onTimeUpdate={handleTimeUpdate}
         style={{ display: 'none' }}
+        crossOrigin="anonymous"
       />
     </div>
     </>

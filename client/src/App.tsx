@@ -1,6 +1,5 @@
-import { Environment, OrbitControls } from "@react-three/drei";
-import { Canvas } from "@react-three/fiber";
-import React, { ChangeEvent, Suspense, useEffect, useRef, useState } from "react";
+
+import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import "./App.scss";
 import SphereVisualizer from "./components/webgl/SphereVisualizer";
@@ -9,18 +8,39 @@ import CylinderVisualizer from "./components/webgl/CylinderVisualizer";
 import FractalVisualizer from "./components/webgl/FractalVisualizer";
 import TorusVisualizer from "./components/webgl/TorusVisualizer";
 import { TornadoVisualizer } from "./components/webgl/TornadoVisualizer";
-import { Audio, Playlist, Scene } from "./models/types";
+import { PlaylistWithBuffer, Scene, TrackWithBuffer } from "./models/types";
 import Sphere from "./components/webgl/Sphere";
-import { Button, Input, InputLabel, MenuItem, Modal, TextField } from "@mui/material";
+import { Button, InputLabel, MenuItem } from "@mui/material";
 import FormControl from "@mui/material/FormControl";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import AudioFileOutlinedIcon from '@mui/icons-material/AudioFileOutlined';
+import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
+
 import AudioContainer from "./components/parameters/AudioContainer";
 import AudioActionsContainer from "./components/parameters/AudioActionsContainer";
 import { CreatePlaylistComponent } from "./components/main/CreatePlaylistComponent";
+import { CurrentPlaylistComponent } from "./components/main/CurrentPlaylistComponent";
+import { AddTrackComponent } from "./components/main/AddTrackComponent";
+import { SearchComponent } from "./components/main/SearchComponent";
+import { WebGLCanvas } from "./components/webgl/WebGLCanvas";
 
+enum DetailLevel {
+  Low = "low",
+  Medium = "medium",
+  High = "high",
+  Ultra = "ultra",
+}
+
+const DETAIL_MAP: Record<DetailLevel, number> = {
+  [DetailLevel.Low]: 16,
+  [DetailLevel.Medium]: 32,
+  [DetailLevel.High]: 64,
+  [DetailLevel.Ultra]: 128,
+}
 
 let initialScenes: Scene[] = [
   {
@@ -76,81 +96,34 @@ let initialScenes: Scene[] = [
   },
 ];
 
-const WebGLCanvas = ( { selectedScene }: { selectedScene: Scene | undefined; } ) => {
-
-  const cameraPos = selectedScene?.cameraPos;
-  const canvasRef = useRef<any>();
-
-  return (
-    <>
-      <Suspense fallback={null}>
-        <Canvas
-          ref={canvasRef}
-          className="webgl"
-          camera={{
-            fov: 75,
-            aspect: window.innerWidth / window.innerHeight,
-            near: 0.001,
-            far: 1000,
-            position: cameraPos ? [cameraPos.x, cameraPos.y, cameraPos.z] : [0, 0, 0],
-          }}
-          gl={{ alpha: false }}
-          onCreated={({ gl, scene }) => {
-            gl.outputEncoding = THREE.sRGBEncoding;
-            
-            gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            gl.setSize(window.innerWidth, window.innerHeight);
-          }}
-        > 
-          { selectedScene ? 
-          
-          <>
-          <selectedScene.jsx detailLevel={selectedScene.detailLevel} cameraPos={cameraPos} /> 
-           <Environment
-            background={true} 
-            files="./img/aurora_1.hdr"
-            //preset={'forest'}
-            scene={undefined} 
-            encoding={undefined} 
-            /> 
-            </> : null }
-
-            {/* <EffectComposer>
-              <Bloom luminanceThreshold={0.0} intensity={1.5} luminanceSmoothing={0.5} />  
-            </EffectComposer>  */}
-            
-          <ambientLight intensity={1.0} />
-          <OrbitControls />
-        </Canvas>
-      </Suspense>
-    </>
-  );
-};
-
 
 function App() {
-  const [scenes, setScenes] = useState(initialScenes);
+ 
   const [selectedScene, setSelectedScene] = useState<Scene | undefined>(undefined);
-  const [selectedDetailLevel, setSelectedDetailLevel] = useState<string>('high');
+  const [selectedDetailLevel, setSelectedDetailLevel] = useState<DetailLevel>(DetailLevel.High);
   const [isScrolling, setIsScrolling] = useState(false);
 
-  const [currentAudio, setCurrentAudio] = useState<Audio | undefined>(undefined);
-  const [mainVisible, setmainVisible] = useState<boolean>(false);
+  const [mainVisible, setMainVisible] = useState<boolean>(false);
+  const [isCreatePlaylist, setIsCreatePlaylist] = useState<boolean>(false);
+  const [currentPlaylist, setCurrentPlaylist] = useState<PlaylistWithBuffer | null>(null);
+  const [isCreateTrack, setIsCreateTrack] = useState<boolean>(false);
+  const [isSearch, setIsSearch] = useState<boolean>(false);
+  const [currentTrack, setCurrentTrack] = useState<TrackWithBuffer | null>(null);
 
+  const scenes = useRef<Scene[]>(initialScenes);
   const visualizerContainer = useRef<HTMLDivElement | null>(null);
   const canvasHolderRef = useRef<HTMLDivElement | null>(null);
   const audioAndInputsContainerRef = useRef<HTMLDivElement | null>(null);
 
-  const detailMap = new Map<String, number>();
-  detailMap.set("low", 16);
-  detailMap.set("medium", 32);
-  detailMap.set("high", 64);
-  detailMap.set("ultra", 128);
+
+  const handleCurrentTrack = (currentTrack: TrackWithBuffer) => {
+    setCurrentTrack(currentTrack);
+  };
 
   const switchSelected = (sceneName: string) => {
-
     const currentScene = initialScenes.find((scene) => scene.name === sceneName);
-    currentScene!.detailLevel = detailMap.get(selectedDetailLevel) || 32;
+    if(!currentScene) return;
+    currentScene.detailLevel = DETAIL_MAP[selectedDetailLevel];
     setSelectedScene(currentScene);
 
   };
@@ -160,7 +133,7 @@ function App() {
   }
 
   const handleSelectChange = (event: SelectChangeEvent<string>) => {
-    const newValue = event.target.value;
+    const newValue = event.target.value as DetailLevel; 
     setSelectedDetailLevel(newValue);
   };
 
@@ -209,23 +182,46 @@ function App() {
 
   };
 
-  const handleSelectAudio = (audio: Audio | undefined) => {
-    setCurrentAudio(audio);
-  };
-
   const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.key === 'n') {
-      // setIsAudioAndInputsContainerVisible(prevState => !prevState);
+    if (event.code === 'Numpad0') {
       audioAndInputsContainerRef.current?.classList.toggle('hidden')
     }
   };
 
-  const handleClose = () => {
-    setmainVisible(false);
+  const handleOpenCreatePlaylist = () => {
+    setMainVisible(true);
+    setIsCreateTrack(false);
+    setCurrentPlaylist(null);
+    setIsSearch(false);
+
+    setIsCreatePlaylist(true);
   };
 
-  const handleOpen = () => {
-    setmainVisible(true);
+  const handleOpenPlaylist = (playlist: PlaylistWithBuffer) => {
+    setMainVisible(true);
+    setIsCreatePlaylist(false);
+    setIsCreateTrack(false);
+    setIsSearch(false);
+
+    setCurrentPlaylist(playlist);
+  };
+
+  const handleOpenAddTrack = () => {
+    setMainVisible(true);
+    setIsCreatePlaylist(false);
+    setCurrentPlaylist(null);
+    setIsSearch(false);
+
+    setIsCreateTrack(true);
+  };
+
+  const handleOpenSearch = () => {
+    setMainVisible(true);
+    setIsCreatePlaylist(false);
+    setCurrentPlaylist(null);
+    setIsCreateTrack(false);
+
+    setIsSearch(true);
   };
 
   useEffect(() => {
@@ -245,7 +241,7 @@ function App() {
           <KeyboardDoubleArrowRightIcon onClick={(e) => handleRightDirection(e)} className="rightIcon" />
           <KeyboardDoubleArrowLeftIcon onClick={(e) => handleLeftDirection(e)} className="leftIcon" />
           <div ref={visualizerContainer} className="visualizerContainer">
-            {  scenes.map((scene) => (
+            {  scenes.current.map((scene) => (
               <div
                 key={scene.name}
                 className="visualizerElement"
@@ -262,10 +258,10 @@ function App() {
                     label="Geometry detail level"
                     fullWidth={true}
                   >
-                    <MenuItem value={"low"}>low res</MenuItem>
-                    <MenuItem value={"medium"}>medium res</MenuItem> 
-                    <MenuItem value={"high"}>high res</MenuItem>
-                    <MenuItem value={"ultra"}>ultra res</MenuItem>
+                    <MenuItem value={"low"}>Low resolution</MenuItem>
+                    <MenuItem value={"medium"}>Medium resolution</MenuItem> 
+                    <MenuItem value={"high"}>High resolution</MenuItem>
+                    <MenuItem value={"ultra"}>Ultra resolution</MenuItem>
                   </Select>
                 </FormControl>
                 <Button variant="outlined" onClick={() => switchSelected(scene.name)}>Select</Button>
@@ -282,18 +278,33 @@ function App() {
       
       {  selectedScene ? 
         <div 
-        //style={{ opacity: isAudioAndInputsContainerVisible ? 0 : 1 }}
         ref={audioAndInputsContainerRef}
         className="audioAndInputsContainer">
-          <AudioContainer handleSetSceneNull={handleSetSceneNull} currentAudio={currentAudio} />
-          <AudioActionsContainer handleOpenModal={handleOpen} handleSelectAudio={handleSelectAudio} />
-
-          { mainVisible ? 
-            <div className="mainModalDiv">
-              <CreatePlaylistComponent isVisible={mainVisible} />
-            </div> : null
-          }
-          
+          <AudioContainer handleSetSceneNull={handleSetSceneNull} currentTrack={currentTrack} />
+          <div className="componentContainerDiv" style={ !mainVisible ? { justifyContent: 'space-between', gridTemplateColumns: '20% 20%', padding: '0 0.225rem' } : {} } >
+            <div className="mainActionsContainer">
+              <div className="topActionsContainer">
+                <div className="topActionDiv" onClick={() => setMainVisible(false)}><HomeOutlinedIcon /><h2>Home</h2></div>
+                <div className="topActionDiv" onClick={handleOpenAddTrack}><AudioFileOutlinedIcon /><h2>Add Track</h2></div>
+                <div className="topActionDiv" onClick={handleOpenSearch}><SearchOutlinedIcon /><h2>Search</h2></div>
+              </div>
+              <AudioActionsContainer currentPlaylistId={currentPlaylist?.id} handleOpenPlaylist={handleOpenPlaylist} handleOpenCreatePlaylist={handleOpenCreatePlaylist} />
+            </div>
+            { mainVisible ? 
+              <div className="mainModalDiv">
+                <div className="exitModalButton" onClick={() => setMainVisible(false) }>
+                  <span>&#10005;</span>
+                </div>
+                <AddTrackComponent isVisible={isCreateTrack} />
+                <CreatePlaylistComponent isVisible={isCreatePlaylist} />
+                <CurrentPlaylistComponent currentPlaylist={currentPlaylist} />
+                <SearchComponent handleCurrentTrack={handleCurrentTrack} isVisible={isSearch} />
+              </div> : null
+            }
+            <div className="parameterContainerDiv">
+              
+            </div>
+          </div>
         </div> : null
        } 
       </main>    
