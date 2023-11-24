@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { SphereVisualizerShaderMaterial } from "../../shaders/sphere/SphereVisualizerShaderMaterial";
 import {
+  Bloom,
   EffectComposer,
   Vignette,
 } from "@react-three/postprocessing";
@@ -42,7 +43,7 @@ const setupAudioContext = (audioElement: HTMLAudioElement) => {
   source.connect(analyser);
   analyser.connect(audioContext.destination);
   analyser.fftSize = 2048;
-  analyser.smoothingTimeConstant = 0.8;
+  analyser.smoothingTimeConstant = 0.85;
   freqArray = new Uint8Array(analyser.fftSize);
   console.log(freqArray.length);
   waveArray = new Float32Array(analyser.fftSize);
@@ -169,26 +170,19 @@ export default function SphereVisualizer(props: any) {
         if (!audioElement.paused) {
 
           scene.rotation.y = -clock.getElapsedTime() * 0.15;
-          scene.position.y = Math.sin(clock.getElapsedTime() * 0.625) * 2.75;
+          // scene.position.y = Math.sin(clock.getElapsedTime() * 0.625) * 2.75;
 
         }
 
         visualizerMesh.current.material.uniforms.uFrequency.value =
-          (lowerMidrangeAverage * 0.15 +
-          midrangeAverage +
-          higherMidrangeAverage * 0.25 +
-          presenceAverage * 0.35 +
-          brillianceAverage * 0.5) /
-          0.85;
+        ( midrangeAverage + higherMidrangeAverage + presenceAverage +
+        brillianceAverage) /
+        1.0;
 
-        // bloomRef.current.intensity = (bassAverage) / 4.0;
+      visualizerMesh.current.material.uniforms.uVolume.value = volume;
 
-        // music volume to uniform
-        visualizerMesh.current.material.uniforms.uVolume.value = volume;
-
-        // highest freq to uniform
-        visualizerMesh.current.material.uniforms.uHighestFreq.value =
-        bassAverage + 1.0 * lowerMidrangeAverage;
+      visualizerMesh.current.material.uniforms.uHighestFreq.value =
+      (bassAverage + lowerMidrangeAverage) / 2.0;
 
         visualizerMesh.current.geometry.attributes.position.needsUpdate = true;
         visualizerMesh.current.material.uniforms.uTime = clock.getElapsedTime();
@@ -203,7 +197,7 @@ export default function SphereVisualizer(props: any) {
     7.5,
     details
   );
-  const geometryBiggest = new THREE.IcosahedronGeometry(200, 32);
+  const geometryBiggest = new THREE.IcosahedronGeometry(200, 256);
 
    let len = geometryBig.attributes.position.count;
 
@@ -222,11 +216,7 @@ export default function SphereVisualizer(props: any) {
 
   return (
     <>
-      <EffectComposer ref={composer} autoClear={false}>
-      
-        {/* <Bloom luminanceThreshold={0.0} intensity={0.5} luminanceSmoothing={1.0} width={1920} height={1080} resolutionX={1920} resolutionY={1080}  /> */}
-        <Vignette />
-      </EffectComposer>
+
       <mesh
         ref={visualizerMesh}
         // rotation={[Math.PI * 1.6, 0, 0]}
@@ -241,7 +231,7 @@ export default function SphereVisualizer(props: any) {
           args={[SphereVisualizerShaderMaterial]}
         />
       </mesh>
-      <mesh
+      <points
         ref={visualizerMesh}
         // rotation={[Math.PI * 1.6, 0, 0]}
         rotation={[0, 0, 0]}
@@ -254,22 +244,22 @@ export default function SphereVisualizer(props: any) {
           attach={"material"}
           args={[SphereVisualizerShaderMaterial]}
         />
-      </mesh>
+      </points>
 
-      <mesh
-        
+      <points
+         ref={visualizerMesh}
         // rotation={[Math.PI * 1.6, 0, 0]}
-        rotation={[0, Math.PI * -0.5, 0]}
+        rotation={[0, 0, 0]}
         geometry={geometryBiggest}
         visible={false}
-        scale={[1.25, 1.25, 1.25]}
+        scale={[1, 1, 1]}
       >
         <shaderMaterial
-          ref={visualizerMat}
+          ref={visualizerMat2}
           attach={"material"}
-          args={[SphereBackgroundShaderMaterial]}
+          args={[SphereVisualizerShaderMaterial]}
         />
-      </mesh>
+      </points>
     </>
   );
 }

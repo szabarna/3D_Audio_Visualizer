@@ -85,6 +85,7 @@ import glsl from 'glslify';
     varying float vDist;
     varying float vDisplace;
     varying float vColorProgress;
+    varying vec3 vCurlDisplace;
 
     uniform float uTime;
     uniform float progress;
@@ -94,8 +95,14 @@ import glsl from 'glslify';
 
    void main() {
 
+      float noise = cnoise(vec3(vUv, vDisplace));
+
       vec3 c1 = vec3(0.0, 0.0, 0.0) * (vDisplace * 0.25);
-      vec3 c2 = vec3(0.0, 0.0, 1.0) * (vDisplace * 0.25);
+      vec3 c2 = vec3(0.0, 0.35, 0.25);
+
+      vec3 red = vec3(1.0, 0.0, 0.0);
+      vec3 blue = vec3(0.0, 0.0, 1.0);
+      vec3 green = vec3(0.0, 1.0, 0.0);
 
       vec3 c3 = vec3(0.0, 0.0, 0.0) * (vDisplace * 0.25);
       vec3 c4 = vec3(0.0, 0.25, 1.0) * (vDisplace * 0.25);
@@ -112,8 +119,11 @@ import glsl from 'glslify';
       vec3 cT2 = ttTwo.rgb;
 
       // mixed w/ texture colors
-       vec3 mixed = mix(c2, c3, vColorProgress / 1.0);
+       
       // + (vDist * 0.075)
+
+      
+      vec3 mixed = mix(green, blue, vDisplace);
 
       // mixed w/ uColor   CHANGE + to * for other effect
       // vec3 mixed = mix(c3, uColor1 + (vDist * 0.075), (vColorProgress * 0.15) + 0.1);
@@ -122,10 +132,10 @@ import glsl from 'glslify';
     // gl_FragColor = vec4(vec3(dist), disc);
      gl_FragColor = vec4(mixed, disc);
 
-    // if(vDisplace < -0.5) gl_FragColor = vec4(cT2, disc);
-      // if(gl_FragColor.r < 0.035 && gl_FragColor.g < 0.035 && gl_FragColor.b < 0.035 ) discard;
-      // if(gl_FragColor.r < 0.1 && gl_FragColor.g < 0.1 && gl_FragColor.b < 0.1 ) gl_FragColor.rgb = vec3(0.0, 0.0, 0.0);
 
+      // if(vDisplace < -0.5) gl_FragColor = vec4(cT2, disc);
+      // if(gl_FragColor.r < 0.35 && gl_FragColor.g < 0.35 && gl_FragColor.b < 0.35 ) discard;
+      // if(gl_FragColor.r < 0.1 && gl_FragColor.g < 0.1 && gl_FragColor.b < 0.1 ) gl_FragColor.rgb = vec3(0.0, 0.0, 0.0);
 
     }
       `

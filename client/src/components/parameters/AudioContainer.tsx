@@ -10,7 +10,7 @@ import { toBase64 } from "../../utils/conversion";
 import { formatTime } from "../../utils/format";
 
 
-const AudioContainer = ({ currentTrack, handleSetSceneNull }: { currentTrack: TrackWithBuffer | null; handleSetSceneNull: () => void; }) => {
+const AudioContainer = ({ handleCurrentAnalyser, currentTrack, handleSetSceneNull }: { handleCurrentAnalyser: (analyser: AnalyserNode, sampleRate: number, audioElement: HTMLAudioElement | null) => void; currentTrack: TrackWithBuffer | null; handleSetSceneNull: () => void; }) => {
  
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.1);
@@ -22,20 +22,43 @@ const AudioContainer = ({ currentTrack, handleSetSceneNull }: { currentTrack: Tr
   const analyserRef = useRef<AnalyserNode | null>(null);
 
   useEffect(() => {
-    if(currentTrack) {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-      analyserRef.current = audioContextRef.current.createAnalyser();
+    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    analyserRef.current = audioContextRef.current.createAnalyser();
+    analyserRef.current.connect(audioContextRef.current.destination);
+
+   
+    return () => {
+
+      if(audioContextRef.current && audioContextRef.current?.state !== 'closed') {
+        console.log("Analyser disconnected");
+        analyserRef.current?.disconnect();
+        audioContextRef.current?.close();
+      }
+   
+    };
+  }, []);
+
+  useEffect(() => {
+    if(currentTrack && audioContextRef.current && analyserRef.current) {
+ 
       const source = audioContextRef.current.createMediaElementSource(audioRef.current as HTMLMediaElement);
       source.connect(analyserRef.current);
-      analyserRef.current.connect(audioContextRef.current.destination);
 
-      console.log("Analyser connected")
+      handleCurrentAnalyser(analyserRef.current, audioContextRef.current.sampleRate, audioRef.current);
+      console.log("Source connected");
+
+      return () => {
+        if(audioContextRef.current && audioContextRef.current?.state !== 'closed') { 
+          source.disconnect();
+          console.log("Source disconnected");
+        }
+      };
     }
   }, [currentTrack]);
 
 
   useEffect(() => {
-    if (audioRef.current && currentTrack) {
+    if (audioRef.current) {
       audioRef.current.volume = volume;
     }
   }, [volume]);
@@ -66,8 +89,6 @@ const AudioContainer = ({ currentTrack, handleSetSceneNull }: { currentTrack: Tr
   }
 
   const handleSceneExit = () => {
-    analyserRef.current?.disconnect();
-    audioContextRef.current?.close();
     handleSetSceneNull();
   }
 
@@ -90,6 +111,10 @@ const AudioContainer = ({ currentTrack, handleSetSceneNull }: { currentTrack: Tr
 
       audioElem.addEventListener('loadedmetadata', handleLoadedMetadata);
       audioElem.addEventListener('timeupdate', handleTimeUpdateEvent);
+      
+     // audioElem.play();
+     // setIsPlaying(true);
+      
 
       return () => {
         audioElem.removeEventListener('loadedmetadata', handleLoadedMetadata);

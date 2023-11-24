@@ -1,10 +1,8 @@
 import express from 'express';
 import multer from 'multer';
-import pool from '../services/pool';
-const cors = require('cors');
-
-import { createPlaylist, deletePlaylist, getAllPlaylistByUserId, getPlaylistById, updatePlaylist } from '../services/crud/playlists';
-import { createTrack, getAllTrack, getTrackById } from '../services/crud/tracks';
+import pool from '../services/pool.js';
+import { createPlaylist, deletePlaylist, getAllPlaylistByUserId, getPlaylistById, updatePlaylist } from '../services/crud/playlists.js';
+import { createTrack, getAllTrack, getAllTrackType, getTrackById } from '../services/crud/tracks.js';
 
 const router = express.Router();
 // router.use( cors );
@@ -110,20 +108,20 @@ router.delete('/playlist/delete/:id', async (req, res) => {
 // TRACKS CRUD
 
 router.post('/track/create', upload.any(), async (req, res) => {
-  const { title, artist } = req.body;
+  const { title, artist, type_id } = req.body;
   const files = req.files as Express.Multer.File[];
 
   const imageBuffer = files[0].buffer;
   const audioBuffer = files[1].buffer;
 
-  if (!title || !artist || !imageBuffer || !audioBuffer) {
-    return res.status(400).json({ message: 'Title, Artist, and image and audio are required.' });
+  if (!title || !artist || !imageBuffer || !audioBuffer || !type_id) {
+    return res.status(400).json({ message: 'Title, Artist, Track type, image and audio are required.' });
   }
 
   const client = await pool.connect();
 
   try {
-    const result = await createTrack(title, artist, audioBuffer, imageBuffer );
+    const result = await createTrack(title, artist, type_id, audioBuffer, imageBuffer );
 
     console.log(`Track created with id: ${result.id}`)
 
@@ -224,7 +222,23 @@ router.get('/tracks', async (_req, res) => {
   }
 });
 
+router.get('/track_types', async (_req, res) => {
 
+  const client = await pool.connect();
+  try {
+    const result = await getAllTrackType();
+
+    console.log(`Successfully fetched ${result.count} track type.`)
+
+    res.status(201).json(result);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Internal Server Error' });
+  } finally {
+    client.release();
+  }
+});
 
 
 export default router;

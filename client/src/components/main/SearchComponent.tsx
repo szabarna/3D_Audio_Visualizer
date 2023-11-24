@@ -77,7 +77,7 @@ export const SearchComponent = ({ isVisible, handleCurrentTrack }: { isVisible: 
                     <div className="leftTrackDiv">
                         { hoveredTrack === track.index ? <PlayCircleFilledIcon onClick={() => handleTrackClick(track)} className="trackPlayIcon" /> : <h2 style={ currentTrackId === track.id ? { color: 'rgb(0, 255, 155)' } : {} }>{track.index}</h2> }
                         <div className="trackImgTextDiv">
-                            <img width={48} height={48} src={`data:image/png/jpeg;base64,${toBase64(track.img?.data)}`} alt={`${track.title}'s bg`} />
+                            <img width={48} height={48} src={track.img ? `data:image/png/jpeg;base64,${toBase64(track.img?.data)}` : undefined} alt={`${track.title}'s bg`} />
                             <div className="trackInfoDiv">
                                 <h3 style={ currentTrackId === track.id ? { color: 'rgb(0, 255, 155)' } : {} } >{track.title}</h3>
                                 <h4>{track.artist}</h4>

@@ -1,10 +1,10 @@
-import pool from '../pool';
+import pool from '../pool.js';
 
 // Create
-const createUser = async (username: string, email: string) => {
+const createUser = async (username: string, email: string, role: string) => {
     const result = await pool.query(
-      'INSERT INTO users (username, email) VALUES ($1, $2) RETURNING *',
-      [username, email]
+      'INSERT INTO users (username, email, role) VALUES ($1, $2, $3) RETURNING *',
+      [username, email, role]
     );
     return result.rows[0];
   };
@@ -29,4 +29,12 @@ const createUser = async (username: string, email: string) => {
     const result = await pool.query('DELETE FROM users WHERE id = $1 RETURNING *', [id]);
     return result.rows[0];
   };
+
+
+  export {
+    createUser,
+    getUserById,
+    updateUser,
+    deleteUser
+  }
   

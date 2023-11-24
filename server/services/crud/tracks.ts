@@ -1,10 +1,10 @@
-import pool from "../pool";
+import pool from "../pool.js";
 
 // Create
-const createTrack = async (title: string, artist: string, audio: Buffer, img: Buffer) => {
+const createTrack = async (title: string, artist: string, type_id:number, audio: Buffer, img: Buffer) => {
   const result = await pool.query(
-    "INSERT INTO tracks (title, artist, audio, img) VALUES ($1, $2, $3, $4) RETURNING *",
-    [title, artist, audio, img]
+    "INSERT INTO tracks (title, artist, type_id, audio, img) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+    [title, artist, type_id, audio, img]
   );
   return result.rows[0];
 };
@@ -26,7 +26,7 @@ const getTrackById = async (id: string) => {
 };
 
 // Update
-const updateSong = async (id: string, title: string, artist: string) => {
+const updateTrack = async (id: string, title: string, artist: string) => {
   const result = await pool.query(
     "UPDATE tracks SET title = $1, artist = $2 WHERE id = $3 RETURNING *",
     [title, artist, id]
@@ -35,7 +35,7 @@ const updateSong = async (id: string, title: string, artist: string) => {
 };
 
 // Delete
-const deleteSong = async (id: string) => {
+const deleteTrack = async (id: string) => {
   const result = await pool.query(
     "DELETE FROM tracks WHERE id = $1 RETURNING *",
     [id]
@@ -43,4 +43,14 @@ const deleteSong = async (id: string) => {
   return result.rows[0];
 };
 
-export { deleteSong, createTrack, updateSong, getTrackById, getAllTrack }
+const getAllTrackType = async () => {
+  const result = await pool.query(
+    "SELECT * FROM track_type",
+  );
+  return {
+    "items": result.rows,
+    "count": result.rowCount
+  }; 
+};
+
+export { deleteTrack, createTrack, updateTrack, getTrackById, getAllTrack, getAllTrackType }

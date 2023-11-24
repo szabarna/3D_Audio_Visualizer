@@ -11,7 +11,6 @@ vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
 vec4 fade(vec4 t) {return t*t*t*(t*(t*6.0-15.0)+10.0);}
 
 float cnoise(vec4 P){
-   
   vec4 Pi0 = floor(P); // Integer part for indexing
   vec4 Pi1 = Pi0 + 1.0; // Integer part + 1
   Pi0 = mod(Pi0, 289.0);
@@ -146,43 +145,37 @@ float cnoise(vec4 P){
 
 
    varying vec2 vUv;
-   varying vec3 vNormal;
    varying vec3 vPosition;
-   varying vec3 vColor;
-   varying float vFreq;
 
    uniform float uTime2;
    uniform float progress;
    uniform float uFrequency;
    uniform float uHighestFreq;
    uniform float uVolume;
-   uniform float uVolume2;
+
+   varying float vDist;
 
    void main() {
 
       vUv = uv;
-      vNormal = normal;
       vPosition = position;
 
       vec3 cPosition = position;
       vec3 distortedPos = position;
-
-      float displaceStrength = 1.0 + (uVolume * 5.0);
-
-      float freqDist = cnoise(vec4(
-          position + 6.5 * (uFrequency + 0.5),
-          uHighestFreq
-      )) * displaceStrength; 
-     
-    
-      cPosition += (normal * freqDist);
-
       
-      vColor = vec3(freqDist);
+       float distortion = cnoise(vec4(
+         -position + 0.001 * (uFrequency),
+         uHighestFreq * uFrequency 
+       ))  * 1.35 * uFrequency + uHighestFreq * 3.0; 
 
+      vDist = distortion;  
 
-      vec4 mvPosition = modelViewMatrix * vec4(cPosition, 1.);
-      gl_PointSize = 4.0;
-      gl_Position = projectionMatrix * mvPosition;
+      cPosition = ( position * 1.0 + -normal * distortion * distortion);
+      
+      gl_PointSize = 2.25;  
+      csm_Position = cPosition; 
+     
        
    }`
+
+

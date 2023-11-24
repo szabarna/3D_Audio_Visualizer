@@ -1,5 +1,5 @@
-
 import React, { useEffect, useRef, useState } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import * as THREE from "three";
 import "./App.scss";
 import SphereVisualizer from "./components/webgl/SphereVisualizer";
@@ -9,11 +9,10 @@ import FractalVisualizer from "./components/webgl/FractalVisualizer";
 import TorusVisualizer from "./components/webgl/TorusVisualizer";
 import { TornadoVisualizer } from "./components/webgl/TornadoVisualizer";
 import { PlaylistWithBuffer, Scene, TrackWithBuffer } from "./models/types";
-import Sphere from "./components/webgl/Sphere";
+import { Sphere } from "./components/webgl/Sphere";
 import { Button, InputLabel, MenuItem } from "@mui/material";
 import FormControl from "@mui/material/FormControl";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
-
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
@@ -27,12 +26,18 @@ import { CurrentPlaylistComponent } from "./components/main/CurrentPlaylistCompo
 import { AddTrackComponent } from "./components/main/AddTrackComponent";
 import { SearchComponent } from "./components/main/SearchComponent";
 import { WebGLCanvas } from "./components/webgl/WebGLCanvas";
+import { LoginComponent } from "./components/auth/Login";
+import { RegisterComponent } from "./components/auth/Register";
+
+import { initializeApp } from "firebase/app";
+import firebaseConfig from './firebase';
 
 enum DetailLevel {
   Low = "low",
   Medium = "medium",
   High = "high",
   Ultra = "ultra",
+  Extreme = 'extreme'
 }
 
 const DETAIL_MAP: Record<DetailLevel, number> = {
@@ -40,6 +45,7 @@ const DETAIL_MAP: Record<DetailLevel, number> = {
   [DetailLevel.Medium]: 32,
   [DetailLevel.High]: 64,
   [DetailLevel.Ultra]: 128,
+  [DetailLevel.Extreme]: 164,
 }
 
 let initialScenes: Scene[] = [
@@ -56,7 +62,8 @@ let initialScenes: Scene[] = [
     jsx: Sphere,
     selected: false,
     detailLevel: 64,
-    cameraPos: new THREE.Vector3(0, -37.5, 112.5),
+    cameraPos: new THREE.Vector3(0, -37.5, 75.5),
+    // cameraPos: new THREE.Vector3(0, -37.5, 75.5),
 
   },
   {
@@ -85,7 +92,7 @@ let initialScenes: Scene[] = [
     jsx: TorusVisualizer,
     selected: false,
     detailLevel: 64,
-    cameraPos: new THREE.Vector3(0, 0, 0)
+    cameraPos: new THREE.Vector3(0, 0, 75.5)
   },
   {
     name: "tornado",
@@ -98,6 +105,8 @@ let initialScenes: Scene[] = [
 
 
 function App() {
+
+  const app =  initializeApp(firebaseConfig);
  
   const [selectedScene, setSelectedScene] = useState<Scene | undefined>(undefined);
   const [selectedDetailLevel, setSelectedDetailLevel] = useState<DetailLevel>(DetailLevel.High);
@@ -108,7 +117,11 @@ function App() {
   const [currentPlaylist, setCurrentPlaylist] = useState<PlaylistWithBuffer | null>(null);
   const [isCreateTrack, setIsCreateTrack] = useState<boolean>(false);
   const [isSearch, setIsSearch] = useState<boolean>(false);
+
   const [currentTrack, setCurrentTrack] = useState<TrackWithBuffer | null>(null);
+  const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
+  const [sampleRate, setSampleRate] = useState<number>(0);
+  const [currentAudioElement, setCurrentAudioElement] = useState<HTMLAudioElement | null>(null);
 
   const scenes = useRef<Scene[]>(initialScenes);
   const visualizerContainer = useRef<HTMLDivElement | null>(null);
@@ -116,8 +129,16 @@ function App() {
   const audioAndInputsContainerRef = useRef<HTMLDivElement | null>(null);
 
 
+  const handleCurrentAnalyser = (analyser: AnalyserNode, sampleRate: number, audioElement: HTMLAudioElement | null) => {
+      setAnalyser(analyser);
+      setSampleRate(sampleRate);
+      setCurrentAudioElement(audioElement);
+  }
+
   const handleCurrentTrack = (currentTrack: TrackWithBuffer) => {
     setCurrentTrack(currentTrack);
+    localStorage.setItem('current_track', JSON.stringify(currentTrack));
+
   };
 
   const switchSelected = (sceneName: string) => {
@@ -226,89 +247,106 @@ function App() {
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
+
+    if(!currentTrack) {
+      const stringCurrentTrack = localStorage.getItem('current_track')
+      if(stringCurrentTrack){ 
+        console.log(JSON.parse(stringCurrentTrack))
+        setCurrentTrack(JSON.parse(stringCurrentTrack)); 
+      }
+    }
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [currentTrack]);
 
 
   return (
     <div className="App">
-      <nav className="navBar"></nav>
-      <main className="mainSection">
-        { !selectedScene ? 
-        <div className="wrapper">
-          <KeyboardDoubleArrowRightIcon onClick={(e) => handleRightDirection(e)} className="rightIcon" />
-          <KeyboardDoubleArrowLeftIcon onClick={(e) => handleLeftDirection(e)} className="leftIcon" />
-          <div ref={visualizerContainer} className="visualizerContainer">
-            {  scenes.current.map((scene) => (
-              <div
-                key={scene.name}
-                className="visualizerElement"
-              >
-                <h2>{scene.name}</h2>
-                <FormControl >
-                  <InputLabel id="demo-simple-select-label">Age</InputLabel>
-                  <Select
-                    labelId="demo-simple-select-label"
-                    id="demo-simple-select" 
+      <BrowserRouter>
+        <Routes>
+          <Route index path='/login' element={ <LoginComponent /> } />
+          <Route path='/register' element={ <RegisterComponent /> } />
+          <Route path='/main' element={  
+          <main className="mainSection">
+            <nav className="navBar"></nav>
+            { !selectedScene ? 
+            <div className="wrapper">
+              <KeyboardDoubleArrowRightIcon onClick={(e) => handleRightDirection(e)} className="rightIcon" />
+              <KeyboardDoubleArrowLeftIcon onClick={(e) => handleLeftDirection(e)} className="leftIcon" />
+              <div ref={visualizerContainer} className="visualizerContainer">
+                {  scenes.current.map((scene) => (
+                  <div
                     key={scene.name}
-                    value={selectedDetailLevel} 
-                    onChange={handleSelectChange}
-                    label="Geometry detail level"
-                    fullWidth={true}
+                    className="visualizerElement"
                   >
-                    <MenuItem value={"low"}>Low resolution</MenuItem>
-                    <MenuItem value={"medium"}>Medium resolution</MenuItem> 
-                    <MenuItem value={"high"}>High resolution</MenuItem>
-                    <MenuItem value={"ultra"}>Ultra resolution</MenuItem>
-                  </Select>
-                </FormControl>
-                <Button variant="outlined" onClick={() => switchSelected(scene.name)}>Select</Button>
-              </div>
-            ))}
-            </div>
-          </div> 
-          :
-        <div ref={canvasHolderRef} className="canvasHolder">
-          <WebGLCanvas selectedScene={selectedScene}  />
-        </div>
-        }
-
-      
-      {  selectedScene ? 
-        <div 
-        ref={audioAndInputsContainerRef}
-        className="audioAndInputsContainer">
-          <AudioContainer handleSetSceneNull={handleSetSceneNull} currentTrack={currentTrack} />
-          <div className="componentContainerDiv" style={ !mainVisible ? { justifyContent: 'space-between', gridTemplateColumns: '20% 20%', padding: '0 0.225rem' } : {} } >
-            <div className="mainActionsContainer">
-              <div className="topActionsContainer">
-                <div className="topActionDiv" onClick={() => setMainVisible(false)}><HomeOutlinedIcon /><h2>Home</h2></div>
-                <div className="topActionDiv" onClick={handleOpenAddTrack}><AudioFileOutlinedIcon /><h2>Add Track</h2></div>
-                <div className="topActionDiv" onClick={handleOpenSearch}><SearchOutlinedIcon /><h2>Search</h2></div>
-              </div>
-              <AudioActionsContainer currentPlaylistId={currentPlaylist?.id} handleOpenPlaylist={handleOpenPlaylist} handleOpenCreatePlaylist={handleOpenCreatePlaylist} />
-            </div>
-            { mainVisible ? 
-              <div className="mainModalDiv">
-                <div className="exitModalButton" onClick={() => setMainVisible(false) }>
-                  <span>&#10005;</span>
+                    <h2>{scene.name}</h2>
+                    <FormControl >
+                      <InputLabel id="demo-simple-select-label">Detail Level</InputLabel>
+                      <Select
+                        labelId="demo-simple-select-label"
+                        id="demo-simple-select" 
+                        key={scene.name}
+                        value={selectedDetailLevel} 
+                        onChange={handleSelectChange}
+                        label="Geometry detail level"
+                        fullWidth={true}
+                      >
+                        <MenuItem value={"low"}>Low resolution</MenuItem>
+                        <MenuItem value={"medium"}>Medium resolution</MenuItem> 
+                        <MenuItem value={"high"}>High resolution</MenuItem>
+                        <MenuItem value={"ultra"}>Ultra resolution</MenuItem>
+                        <MenuItem value={"extreme"}>Extreme resolution</MenuItem>
+                      </Select>
+                    </FormControl>
+                    <Button variant="outlined" onClick={() => switchSelected(scene.name)}>Select</Button>
+                  </div>
+                ))}
                 </div>
-                <AddTrackComponent isVisible={isCreateTrack} />
-                <CreatePlaylistComponent isVisible={isCreatePlaylist} />
-                <CurrentPlaylistComponent currentPlaylist={currentPlaylist} />
-                <SearchComponent handleCurrentTrack={handleCurrentTrack} isVisible={isSearch} />
-              </div> : null
-            }
-            <div className="parameterContainerDiv">
-              
+              </div> 
+              :
+            <div ref={canvasHolderRef} className="canvasHolder">
+              <WebGLCanvas currentAudioElement={currentAudioElement} sampleRate={sampleRate} analyser={analyser} selectedScene={selectedScene}  />
             </div>
-          </div>
-        </div> : null
-       } 
-      </main>    
+            }
 
+          {  selectedScene ? 
+            <div 
+            ref={audioAndInputsContainerRef}
+            className="audioAndInputsContainer">
+              <AudioContainer handleCurrentAnalyser={handleCurrentAnalyser} handleSetSceneNull={handleSetSceneNull} currentTrack={currentTrack} />
+              <div className="componentContainerDiv" style={ !mainVisible ? { justifyContent: 'space-between', gridTemplateColumns: '20% 20%', padding: '0 0.225rem' } : {} } >
+                <div className="mainActionsContainer">
+                  <div className="topActionsContainer">
+                    <div className="topActionDiv" onClick={() => setMainVisible(false)}><HomeOutlinedIcon /><h2>Home</h2></div>
+                    <div className="topActionDiv" onClick={handleOpenAddTrack}><AudioFileOutlinedIcon /><h2>Add Track</h2></div>
+                    <div className="topActionDiv" onClick={handleOpenSearch}><SearchOutlinedIcon /><h2>Search</h2></div>
+                  </div>
+                  <AudioActionsContainer currentPlaylistId={currentPlaylist?.id} handleOpenPlaylist={handleOpenPlaylist} handleOpenCreatePlaylist={handleOpenCreatePlaylist} />
+                </div>
+                { mainVisible ? 
+                  <div className="mainModalDiv">
+                    <div className="exitModalButton" onClick={() => setMainVisible(false) }>
+                      <span>&#10005;</span>
+                    </div>
+                    <AddTrackComponent isVisible={isCreateTrack} />
+                    <CreatePlaylistComponent isVisible={isCreatePlaylist} />
+                    <CurrentPlaylistComponent currentPlaylist={currentPlaylist} />
+                    <SearchComponent handleCurrentTrack={handleCurrentTrack} isVisible={isSearch} />
+                  </div> : null
+                }
+                <div className="parameterContainerDiv">
+                  
+                </div>
+              </div>
+            </div> : null
+          } 
+          </main>    } 
+          />
+          <Route path="/" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </BrowserRouter>
     </div>
   );
 }

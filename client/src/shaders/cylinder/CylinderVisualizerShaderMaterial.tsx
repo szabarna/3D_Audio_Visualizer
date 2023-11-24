@@ -12,7 +12,6 @@ export const CylinderVisualizerShaderMaterial = {
     //blend: AdditiveBlending,
     wireframe: true,
     
-
   uniforms: {
      uTime: {
         type: "f",
@@ -25,12 +24,6 @@ export const CylinderVisualizerShaderMaterial = {
     progress: {
       type: "f",
       value: 0.0
-    },
-    freqArray: {
-      value: new Uint8Array()
-    },
-    waveArray: {
-      value: new Uint8Array()
     },
     uVolume: {
       type: "f",

@@ -11,7 +11,6 @@ vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
 vec4 fade(vec4 t) {return t*t*t*(t*(t*6.0-15.0)+10.0);}
 
 float cnoise(vec4 P){
-   
   vec4 Pi0 = floor(P); // Integer part for indexing
   vec4 Pi1 = Pi0 + 1.0; // Integer part + 1
   Pi0 = mod(Pi0, 289.0);
@@ -146,47 +145,44 @@ float cnoise(vec4 P){
 
 
    varying vec2 vUv;
-   varying vec3 vNormal;
    varying vec3 vPosition;
-   varying vec3 vColor;
-   varying float vFreq;
 
    uniform float uTime2;
    uniform float progress;
    uniform float uFrequency;
    uniform float uHighestFreq;
    uniform float uVolume;
-   uniform float uVolume2;
+
+   varying float vDist;
 
    void main() {
 
       vUv = uv;
-      vNormal = normal;
       vPosition = position;
 
       vec3 cPosition = position;
       vec3 distortedPos = position;
-
-      // 1st float displaceStrength = 1.0 + (uVolume * 2.5); 
-      float displaceStrength = 1.0 * (uFrequency * 3.25); 
-
-      float freqDist = cnoise(vec4(
-          position * 1.25 + ((uVolume * 0.25) + 1.0),
-          uFrequency
-      )) * displaceStrength; 
-     
-    
-      cPosition += (normal * freqDist);
-     // cPosition.z += (normal * freqDist).z;
-     // cPosition.z += (normal * freqDist).x;
-
       
-      vColor = vec3(freqDist);
-      vFreq = uFrequency;
+      float displaceStrength = 1.0 + (uVolume * 3.25) + (uFrequency * 3.25);
+      
+       float distortion = cnoise(vec4(
+         position * 1.0 * (uFrequency),
+         uFrequency 
+       ))  * 2.25 * uFrequency + 2.0 * uHighestFreq; 
 
+       //  normal  * 4.75 * (uFrequency),
 
-      vec4 mvPosition = modelViewMatrix * vec4(cPosition, 1.);
-      gl_PointSize = 2.5;
-      gl_Position = projectionMatrix * mvPosition;
+      vDist = distortion;  
+
+      float maxScale = 3.0;
+      cPosition *= 1.0 + ((uHighestFreq) + (uHighestFreq * 0.75) + (uHighestFreq * 0.5) + (uHighestFreq * 0.25)) * uHighestFreq; 
+
+      cPosition += ( -normal * distortion );
+      
+      gl_PointSize = 5.25;  
+      csm_Position = cPosition; 
+     
        
    }`
+
+

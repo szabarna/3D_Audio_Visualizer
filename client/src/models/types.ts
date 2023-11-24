@@ -41,7 +41,7 @@ type Track = {
     artist: string;
     audio: File | null;
     img: File | null;
-    type_id: number;
+    type_id: string;
 }
 
 type TrackWithBuffer = {
@@ -52,7 +52,7 @@ type TrackWithBuffer = {
     count: number;
     index: number;
     id: number;
-    type_id: number;
+    type_id: string;
 }
 
 type TrackResponse = {
@@ -60,4 +60,9 @@ type TrackResponse = {
     count: number;
 };
 
-export type { Scene, Playlist, PlaylistResponse, PlaylistWithBuffer, Track, TrackWithBuffer, TrackResponse };
+type TrackType = {
+    id: string;
+    name: string;
+};
+
+export type { Scene, Playlist, PlaylistResponse, PlaylistWithBuffer, Track, TrackWithBuffer, TrackResponse, TrackType };

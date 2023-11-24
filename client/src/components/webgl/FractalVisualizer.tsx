@@ -6,9 +6,7 @@ import { useFrame } from "@react-three/fiber";
 import gsap from 'gsap';
 import { FractalVisualizerShaderMaterial } from "../../shaders/fractal/FractalVisualizerShaderMaterial";
 import { Bloom, ChromaticAberration, EffectComposer } from "@react-three/postprocessing";
-import * as dat from 'dat.gui';
 
-const gui = new dat.GUI()
 
 let audioContext: AudioContext, source, analyser: AnalyserNode, freqArray:Uint8Array, waveArray:Float32Array;
 const minVocalFrequency = 80; // Hz
@@ -35,36 +33,6 @@ const setupAudioContext = (audioElement:HTMLAudioElement) => {
 
 }
 
-const setupAudioContextWithMicrophone = () => {
-
-    audioContext = new AudioContext();
-     analyser = audioContext.createAnalyser();
-     analyser.connect(audioContext.destination);
-     analyser.fftSize = 4096;
-     analyser.smoothingTimeConstant = 0.8;
-     freqArray = new Uint8Array( analyser.fftSize );
-     waveArray = new Float32Array( analyser.fftSize );
-     console.log(freqArray.length);
-
-     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-         // Create a media stream source and connect it to the analyzer node
-         const source = audioContext.createMediaStreamSource(stream);
-         source.connect(analyser);
-        
-       }).catch((error) => {
-         console.log("Error getting user media:", error);
-       });
- 
- }
-
- var parameters:any = {
-    a:  0,
-    b: 0,
-    c: 0,
-    d: 0.6,
-    e: -0.9,
-    f: 0
-  } 
 
 export default function FractalVisualizer( props:any ) {
 
@@ -84,13 +52,6 @@ export default function FractalVisualizer( props:any ) {
     useEffect(() => {
         // setupAudioContextWithMicrophone();
         window.addEventListener('keydown', onKeyDown);
-        for (var key in parameters){
-            gui.add(parameters, key, -5.0, 5.0);
-          }
-
-      
-          visualizerMat.current.pset1 = new THREE.Vector3(parameters['a'], parameters['b'], parameters['c']);
-          visualizerMat.current.pset2 = new THREE.Vector3(parameters['d'], parameters['e'], parameters['f']);
 
         if(audioElement) {
             setupAudioContext(audioElement);
@@ -149,8 +110,7 @@ export default function FractalVisualizer( props:any ) {
  
                 }
 
-                visualizerMat.current.pset1 = new THREE.Vector3(parameters['a'], parameters['b'], parameters['c']);
-                visualizerMat.current.pset2 = new THREE.Vector3(parameters['d'], parameters['e'], parameters['f']);
+
 
             
                 // first freq to uniform

@@ -1,4 +1,4 @@
-import pool from "../pool";
+import pool from "../pool.js";
 
 // Create
 const addSongToPlaylist = async (playlistId: string, songId: string) => {

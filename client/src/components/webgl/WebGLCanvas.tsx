@@ -3,9 +3,9 @@ import { Canvas } from "@react-three/fiber";
 import { Suspense, useRef } from "react";
 import { Scene } from "../../models/types";
 import { sRGBEncoding } from "three";
-import { Bloom, EffectComposer } from "@react-three/postprocessing";
+import React from "react";
 
-export const WebGLCanvas = ( { selectedScene }: { selectedScene: Scene | undefined; } ) => {
+export const WebGLCanvas = React.memo(( { currentAudioElement, sampleRate, analyser, selectedScene }: { currentAudioElement:HTMLAudioElement | null; sampleRate: number; analyser: AnalyserNode | null; selectedScene: Scene | undefined; } ) => {
 
     const cameraPos = selectedScene?.cameraPos;
     const canvasRef = useRef<any>();
@@ -34,24 +34,21 @@ export const WebGLCanvas = ( { selectedScene }: { selectedScene: Scene | undefin
             { selectedScene ? 
             
             <>
-            <selectedScene.jsx detailLevel={selectedScene.detailLevel} cameraPos={cameraPos} /> 
-             <Environment
-              background={true} 
+            <selectedScene.jsx currentAudioElement={currentAudioElement} sampleRate={sampleRate} analyser={analyser} detailLevel={selectedScene.detailLevel} cameraPos={cameraPos} /> 
+              <Environment
+              background={false} 
               files="./img/aurora_1.hdr"
               //preset={'forest'}
               scene={undefined} 
-              encoding={undefined} 
-              /> 
+              encoding={undefined}
+              />  
               </> : null }
   
-               <EffectComposer autoClear={false}>
-                    <Bloom luminanceThreshold={0.0} intensity={1.5} luminanceSmoothing={0.5} />  
-               </EffectComposer>  
               
             <ambientLight intensity={1.0} />
-            <OrbitControls />
+            <OrbitControls autoRotate={ true } autoRotateSpeed={1.75} />
           </Canvas>
         </Suspense>
       </>
     );
-  };
+  });

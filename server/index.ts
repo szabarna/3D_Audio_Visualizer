@@ -1,9 +1,10 @@
-import bodyParser from 'body-parser';
-import musicRoutes from './routes/musicRoutes';
+import musicRoutes from './routes/musicRoutes.js';
 import dotenv from 'dotenv';
-
-let express = require('express');
-let cors = require('cors');
+import downloadRoutes from './routes/downloadRoutes.js';
+import userRoutes from './routes/userRoute.js'
+import bodyParser from 'body-parser';
+import express from 'express';
+import cors from 'cors';
 
 dotenv.config();
 
@@ -12,6 +13,8 @@ app.use( cors() );
 app.use( bodyParser.json() )
 
 app.use("/api", musicRoutes);
+app.use("/api/download", downloadRoutes);
+app.use('/api', userRoutes);
 
 const PORT = process.env.PORT;
 

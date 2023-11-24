@@ -7,8 +7,10 @@ import { sphereFragmentShader } from "./sphere.fragment";
 
 export const SphereVisualizerShaderMaterial = {
   side: DoubleSide,
-  transparent: false,
+  transparent: true,
   wireframe: false,
+  blending: THREE.AdditiveBlending,
+  depthTest: false,
 
   uniforms: {
     uTime: {
